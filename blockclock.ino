@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include <HTTPClient.h>
 #include <M5StickCPlus.h>
 #include <WiFiMulti.h>
@@ -15,6 +14,8 @@ String blockHeightGlobal;
 int bat;
 const char* SSID = "WIFISSID";
 const char* PASSWD = "WIFIPASSWORD";
+const float BATTERY_MIN_VOLTAGE = 3.7;
+const float BATTERY_MAX_VOLTAGE = 4.1;
 
 void setup() {
   M5.begin(true, true, false);
@@ -74,24 +75,24 @@ void printInfo() {
 
 bool isCharging() {
   float batteryCurrent = M5.Axp.GetBatCurrent();
-  if (batteryCurrent < 0) return false;
-  return true;
+  return batteryCurrent >= 0;
 }
 
 void printBattery() {
   M5.Lcd.setTextSize(2);
   bat = calculateBatteryPercentage(M5.Axp.GetBatVoltage());
-  M5.Lcd.setCursor(185, 115);
-  if (bat > 100) {
+  if (bat >= 100) {
+    M5.Lcd.setCursor(185, 115);
     M5.Lcd.print("100%");
     return;
   }
+  M5.Lcd.setCursor(200, 115);
   M5.Lcd.print(String(bat) + "%");
 }
 
 int calculateBatteryPercentage(float voltage) {
   // https://forum.micropython.org/viewtopic.php?f=2&t=7615#p43401
-  return (int)trunc((voltage - 3.7) * (100 - 0) / (4.1 - 3.7) + 0);
+  return (int)trunc((voltage - BATTERY_MIN_VOLTAGE) * (100 - 0) / (BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE) + 0);
 }
 
 void clearScreen() { M5.Lcd.fillRect(0, 0, 240, 135, BLACK); }
