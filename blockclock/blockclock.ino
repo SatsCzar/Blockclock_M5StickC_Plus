@@ -11,7 +11,7 @@ WiFiMulti wifiMulti;
 HTTPClient http;
 
 String blockHeightGlobal;
-int bat;
+int batteryLevel;
 const char* SSID = "WIFISSID";
 const char* PASSWD = "WIFIPASSWORD";
 const float BATTERY_MIN_VOLTAGE = 3.7;
@@ -53,7 +53,7 @@ void loop() {
   if (!isCharging()) {
     printBattery();
   }
-  delay(60000);
+  delay(60000); // 1 minute
 }
 
 String getBlockHeight() {
@@ -80,14 +80,14 @@ bool isCharging() {
 
 void printBattery() {
   M5.Lcd.setTextSize(2);
-  bat = calculateBatteryPercentage(M5.Axp.GetBatVoltage());
-  if (bat >= 100) {
+  batteryLevel = calculateBatteryPercentage(M5.Axp.GetBatVoltage());
+  if (batteryLevel >= 100) {
     M5.Lcd.setCursor(185, 115);
     M5.Lcd.print("100%");
     return;
   }
   M5.Lcd.setCursor(200, 115);
-  M5.Lcd.print(String(bat) + "%");
+  M5.Lcd.print(String(batteryLevel) + "%");
 }
 
 int calculateBatteryPercentage(float voltage) {
