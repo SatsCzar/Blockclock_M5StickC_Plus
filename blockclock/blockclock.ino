@@ -1,13 +1,12 @@
 #include <HTTPClient.h>
 #include <M5StickCPlus.h>
-#include <WiFiMulti.h>
 
 #include <cmath>
 #include <string>
 
-#include "WiFi.h"
+#include "esp32-hal-cpu.h"
+#include "esp_wifi.h"
 
-WiFiMulti wifiMulti;
 HTTPClient http;
 
 String blockHeightGlobal;
@@ -18,19 +17,29 @@ const float BATTERY_MIN_VOLTAGE = 3.7;
 const float BATTERY_MAX_VOLTAGE = 4.1;
 
 void setup() {
+  setCpuFrequencyMhz(80);  // Lower processor clock to save power
   M5.begin(true, true, false);
 
   M5.Lcd.setTextSize(2);
   M5.Lcd.setRotation(1);
+  M5.Axp.ScreenBreath(9);
+
   M5.Lcd.setCursor(10, 10);
   M5.Lcd.println("BLOCKCLOCK");
   M5.Lcd.setCursor(10, 30);
   M5.Lcd.println("Connecting Wifi");
-  wifiMulti.addAP(SSID, PASSWD);
+
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(SSID, PASSWD);
+
+  while (millis() < 3000 && WiFi.status() != WL_CONNECTED) {
+    // Await fot WiFi connect
+  }
+
+  esp_wifi_set_ps(WIFI_PS_MAX_MODEM);  // Set max power save
 
   M5.Lcd.setCursor(10, 50);
-
-  if (wifiMulti.run() == WL_CONNECTED) {
+  if (WiFi.status() == WL_CONNECTED) {
     M5.Lcd.println("Wifi connected");
     M5.Lcd.setCursor(10, 70);
     delay(500);
@@ -42,7 +51,7 @@ void setup() {
 void loop() {
   String blockheight;
 
-  if (wifiMulti.run() == WL_CONNECTED) {
+  if (WiFi.status() == WL_CONNECTED) {
     blockheight = getBlockHeight();
     if (blockheight != blockHeightGlobal) {
       blockHeightGlobal = blockheight;
@@ -53,7 +62,7 @@ void loop() {
   if (!isCharging()) {
     printBattery();
   }
-  delay(60000); // 1 minute
+  delay(60000);  // 1 minute
 }
 
 String getBlockHeight() {
@@ -96,3 +105,4 @@ int calculateBatteryPercentage(float voltage) {
 }
 
 void clearScreen() { M5.Lcd.fillRect(0, 0, 240, 135, BLACK); }
+                                                                             
