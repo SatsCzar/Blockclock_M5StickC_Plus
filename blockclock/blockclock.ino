@@ -47,7 +47,6 @@ void setup() {
   M5.Lcd.println("BLOCKCLOCK");
   M5.Lcd.setCursor(10, 30);
   M5.Lcd.setTextSize(1);
-  M5.Lcd.println("Waiting for Wifi config");
   wifiInit();
 }
 
@@ -68,7 +67,6 @@ void loop() {
     }
     if (!isCharging()) {
       printBattery();
-      
     }
   }
 
@@ -144,9 +142,6 @@ void wifiInit()  //
   rssiSSID = reinterpret_cast<const char*>(conf.sta.ssid);
   password = reinterpret_cast<const char*>(conf.sta.password);
 
-  Serial.printf( "%s\n", rssiSSID );
-  Serial.printf( "%s\n", password );
-
   // Open Preferences with "wifi" namespace. Namespace is limited to 15 chars
   preferences.begin("wifi", false);
   PrefSSID = preferences.getString("ssid", "none");          // NVS key ssid
@@ -158,13 +153,14 @@ void wifiInit()  //
   {                          // not the same, setup with SmartConfig
     if (PrefSSID == "none")  // New...setup wifi
     {
+      M5.Lcd.println("Waiting for Wifi config");
       initSmartConfig();
       delay(3000);
       ESP.restart();  // reboot with wifi configured
     }
   }
-
-  // I flash LEDs while connecting here
+  
+  WiFi.mode(WIFI_STA);
 
   M5.Lcd.setCursor(10, 50);
   M5.Lcd.println("Connecting to: " + String(PrefSSID.c_str()));
