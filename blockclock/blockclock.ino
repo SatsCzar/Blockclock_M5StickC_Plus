@@ -1,18 +1,19 @@
 #include <HTTPClient.h>
 #include <M5StickCPlus.h>
+#include <Preferences.h>
 
 #include <cmath>
 #include <string>
 
 #include "esp32-hal-cpu.h"
+#include "esp_system.h"
 #include "esp_wifi.h"
 
 HTTPClient http;
+Preferences preferences;
 
 String blockHeightGlobal;
 int batteryLevel;
-const char* SSID = "WIFISSID";
-const char* PASSWD = "WIFIPASSWORD";
 const float BATTERY_MIN_VOLTAGE = 3.7;
 const float BATTERY_MAX_VOLTAGE = 4.1;
 
@@ -26,26 +27,155 @@ void setup() {
 
   M5.Lcd.setCursor(10, 10);
   M5.Lcd.println("BLOCKCLOCK");
-  M5.Lcd.setCursor(10, 30);
-  M5.Lcd.println("Connecting Wifi");
+
+  initWiFi();
+}
+
+void initWiFi() {
+  M5.Lcd.setTextSize(1);
+
+  WiFi.mode(WIFI_AP_STA);
+
+  if (!haveDataInPrefs()) {
+    /* Dont have wifi saved
+        Init smarttconfig mode */
+    initWiFiSmartConfig();
+    delay(3000);
+    ESP.restart();
+  }
+
+  String ssid = getPrefsSsidPasswd("ssid");
+  String password = getPrefsSsidPasswd("pass");
+
+  M5.Lcd.setCursor(10, 50);
+  M5.Lcd.println("Connecting to: " + ssid);
 
   WiFi.mode(WIFI_STA);
-  WiFi.begin(SSID, PASSWD);
+  WiFi.begin(ssid.c_str(), password.c_str());
 
-  while (millis() < 3000 && WiFi.status() != WL_CONNECTED) {
-    // Await fot WiFi connect
+  while (waitingWiFiConnection(WiFi.status())) {
+    delay(500);
+  }
+
+  if (connectionFailed(WiFi.status())) {
+    M5.Lcd.setCursor(10, 60);
+    M5.Lcd.println("Failed to connect to: " + ssid);
+    M5.Lcd.setCursor(10, 70);
+    M5.Lcd.println("Wiping WiFi data and restarting");
+    wipeWiFiData();
+    delay(3000);
+    ESP.restart();
   }
 
   esp_wifi_set_ps(WIFI_PS_MAX_MODEM);  // Set max power save
+}
 
-  M5.Lcd.setCursor(10, 50);
-  if (WiFi.status() == WL_CONNECTED) {
-    M5.Lcd.println("Wifi connected");
-    M5.Lcd.setCursor(10, 70);
+void initWiFiSmartConfig() {
+  WiFi.beginSmartConfig(SC_TYPE_ESPTOUCH);
+
+  M5.Lcd.setCursor(10, 30);
+  M5.Lcd.println("Waiting for SmartConfig");
+
+  while (!WiFi.smartConfigDone()) {
     delay(500);
-  } else {
-    M5.Lcd.println("Connection failed");
   }
+
+  M5.Lcd.setCursor(10, 40);
+  M5.Lcd.println("Smartconfig received");
+  M5.Lcd.setCursor(10, 50);
+  M5.Lcd.println("Trying to connect");
+
+  while (waitingWiFiConnection(WiFi.status())) {
+    delay(500);
+  }
+
+  M5.Lcd.setCursor(10, 60);
+  M5.Lcd.println("Connected to: " + WiFi.SSID());
+  M5.Lcd.setCursor(10, 70);
+  M5.Lcd.println("Saving WiFi data");
+
+  String ssid = getSsidPasswd("SSID");
+  String password = getSsidPasswd("PASS");
+
+  saveWiFiDataInStorage(ssid, password);
+
+  M5.Lcd.setCursor(10, 80);
+  M5.Lcd.println("Restarting");
+
+  delay(500);
+}
+
+boolean waitingWiFiConnection(wl_status_t status) {
+  if (status != WL_CONNECTED && status != WL_CONNECT_FAILED &&
+      status != WL_NO_SSID_AVAIL) {
+    return true;
+  }
+
+  return false;
+}
+
+boolean connectionFailed(wl_status_t status) {
+  if (status == WL_NO_SSID_AVAIL || status == WL_IDLE_STATUS ||
+      status == WL_CONNECT_FAILED) {
+    return true;
+  }
+
+  return false;
+}
+
+void saveWiFiDataInStorage(String ssid, String password) {
+  preferences.begin("wifi");
+  preferences.putString("ssid", ssid);
+  preferences.putString("password", password);
+  preferences.end();
+}
+
+boolean haveDataInPrefs() {
+  String ssid = getPrefsSsidPasswd("ssid");
+
+  if (ssid != "none") {
+    return true;
+  }
+
+  return false;
+}
+
+String getSsidPasswd(String ssidPasswd) {
+  ssidPasswd.toUpperCase();
+
+  wifi_config_t conf;
+  esp_wifi_get_config(WIFI_IF_STA, &conf);
+
+  if (ssidPasswd == "SSID") {
+    return String(reinterpret_cast<const char*>(conf.sta.ssid));
+  }
+  if (ssidPasswd == "PASS") {
+    return String(reinterpret_cast<const char*>(conf.sta.password));
+  }
+}
+
+void wipeWiFiData() {
+  preferences.begin("wifi");
+  preferences.clear();
+  preferences.end();
+}
+
+String getPrefsSsidPasswd(String ssidPasswd) {
+  ssidPasswd.toUpperCase();
+  preferences.begin("wifi");
+
+  String value;
+
+  if (ssidPasswd == "SSID") {
+    value = preferences.getString("ssid", "none");
+  }
+  if (ssidPasswd == "PASS") {
+    value = preferences.getString("password", "none");
+  }
+
+  preferences.end();
+
+  return value;
 }
 
 void loop() {
@@ -101,8 +231,9 @@ void printBattery() {
 
 int calculateBatteryPercentage(float voltage) {
   // https://forum.micropython.org/viewtopic.php?f=2&t=7615#p43401
-  return (int)trunc((voltage - BATTERY_MIN_VOLTAGE) * (100 - 0) / (BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE) + 0);
+  return (int)trunc((voltage - BATTERY_MIN_VOLTAGE) * (100 - 0) /
+                        (BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE) +
+                    0);
 }
 
 void clearScreen() { M5.Lcd.fillRect(0, 0, 240, 135, BLACK); }
-                                                                             
