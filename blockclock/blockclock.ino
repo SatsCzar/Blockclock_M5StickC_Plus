@@ -14,8 +14,6 @@ Preferences preferences;
 
 String blockHeightGlobal;
 int batteryLevel;
-const char* SSID = "WIFISSID";
-const char* PASSWD = "WIFIPASSWORD";
 const float BATTERY_MIN_VOLTAGE = 3.7;
 const float BATTERY_MAX_VOLTAGE = 4.1;
 
@@ -41,7 +39,7 @@ void initWiFi() {
   if (!haveDataInPrefs()) {
     /* Dont have wifi saved
         Init smarttconfig mode */
-    initWifiSmartConfig();
+    initWiFiSmartConfig();
     delay(3000);
     ESP.restart();
   }
@@ -59,15 +57,20 @@ void initWiFi() {
     delay(500);
   }
 
-  if (WiFi.status() == WL_CONNECT_FAILED) {
+  if (connectionFailed(WiFi.status())) {
     M5.Lcd.setCursor(10, 60);
     M5.Lcd.println("Failed to connect to: " + ssid);
+    M5.Lcd.setCursor(10, 70);
+    M5.Lcd.println("Wiping WiFi data and restarting");
+    wipeWiFiData();
+    delay(3000);
+    ESP.restart();
   }
 
   esp_wifi_set_ps(WIFI_PS_MAX_MODEM);  // Set max power save
 }
 
-void initWifiSmartConfig() {
+void initWiFiSmartConfig() {
   WiFi.beginSmartConfig(SC_TYPE_ESPTOUCH);
 
   M5.Lcd.setCursor(10, 30);
@@ -94,7 +97,7 @@ void initWifiSmartConfig() {
   String ssid = getSsidPasswd("SSID");
   String password = getSsidPasswd("PASS");
 
-  saveWifiDataInStorage(ssid, password);
+  saveWiFiDataInStorage(ssid, password);
 
   M5.Lcd.setCursor(10, 80);
   M5.Lcd.println("Restarting");
@@ -103,14 +106,24 @@ void initWifiSmartConfig() {
 }
 
 boolean waitingWiFiConnection(wl_status_t status) {
-  if (status != WL_CONNECTED && status != WL_CONNECT_FAILED) {
+  if (status != WL_CONNECTED && status != WL_CONNECT_FAILED &&
+      status != WL_NO_SSID_AVAIL) {
     return true;
   }
 
   return false;
 }
 
-void saveWifiDataInStorage(String ssid, String password) {
+boolean connectionFailed(wl_status_t status) {
+  if (status == WL_NO_SSID_AVAIL || status == WL_IDLE_STATUS ||
+      status == WL_CONNECT_FAILED) {
+    return true;
+  }
+
+  return false;
+}
+
+void saveWiFiDataInStorage(String ssid, String password) {
   preferences.begin("wifi");
   preferences.putString("ssid", ssid);
   preferences.putString("password", password);
@@ -118,9 +131,9 @@ void saveWifiDataInStorage(String ssid, String password) {
 }
 
 boolean haveDataInPrefs() {
-  String ssid = getSsidPasswd("ssid");
+  String ssid = getPrefsSsidPasswd("ssid");
 
-  if(ssid != "none") {
+  if (ssid != "none") {
     return true;
   }
 
@@ -139,6 +152,12 @@ String getSsidPasswd(String ssidPasswd) {
   if (ssidPasswd == "PASS") {
     return String(reinterpret_cast<const char*>(conf.sta.password));
   }
+}
+
+void wipeWiFiData() {
+  preferences.begin("wifi");
+  preferences.clear();
+  preferences.end();
 }
 
 String getPrefsSsidPasswd(String ssidPasswd) {
