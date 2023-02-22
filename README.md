@@ -4,7 +4,7 @@ This is a bitcoin blockclock that works connected to wifi, pulling data from mem
 
 ![M5StickC running blockclock](https://raw.githubusercontent.com/bolsonitro/Blockclock_M5StickC_Plus/master/m5stickblockclock.jpg)
 
-## Instalando
+## Installing
 
 1. Download the latest version of Arduino IDE
 2. Follow the tutorial [tutorial](https://docs.m5stack.com/en/quick_start/m5stickc_plus/arduino) to install the libraries
