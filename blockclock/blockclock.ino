@@ -14,12 +14,13 @@ Preferences preferences;
 
 String blockHeightGlobal;
 int batteryLevel;
-const float BATTERY_MIN_VOLTAGE = 3.7;
+const float BATTERY_MIN_VOLTAGE = 3.06;
 const float BATTERY_MAX_VOLTAGE = 4.1;
+const int ONE_MINUTE = 60000;
 
 void setup() {
-  setCpuFrequencyMhz(80);  // Lower processor clock to save power
   M5.begin(true, true, false);
+  setCpuMaxPowerSave();
 
   M5.Lcd.setTextSize(2);
   M5.Lcd.setRotation(1);
@@ -36,9 +37,7 @@ void initWiFi() {
 
   WiFi.mode(WIFI_AP_STA);
 
-  if (!haveDataInPrefs()) {
-    /* Dont have wifi saved
-        Init smarttconfig mode */
+  if (dontHaveWiFiDataInPrefs()) {
     initWiFiSmartConfig();
     delay(3000);
     ESP.restart();
@@ -49,25 +48,49 @@ void initWiFi() {
 
   M5.Lcd.setCursor(10, 50);
   M5.Lcd.println("Connecting to: " + ssid);
+  M5.Lcd.setCursor(10, 60);
+  M5.Lcd.println("Please Stand By");
+  M5.Lcd.println("");
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid.c_str(), password.c_str());
 
-  while (waitingWiFiConnection(WiFi.status())) {
-    delay(500);
+  int count = 0;
+
+  while (waitingWiFiConnection(WiFi.status(), count)) {
+    M5.Lcd.print(".");
+    count++;
+    delay(100);
   }
+
+  M5.Lcd.fillRect(0, 60, 240, 135, BLACK);
 
   if (connectionFailed(WiFi.status())) {
     M5.Lcd.setCursor(10, 60);
     M5.Lcd.println("Failed to connect to: " + ssid);
     M5.Lcd.setCursor(10, 70);
-    M5.Lcd.println("Wiping WiFi data and restarting");
-    wipeWiFiData();
-    delay(3000);
-    ESP.restart();
+    M5.Lcd.println("Press main button to wipe WiFi data");
+    M5.Lcd.setCursor(10, 80);
+    M5.Lcd.println("Or press other button to restart");
+
+    while (true) {
+      M5.update();
+      if (M5.BtnA.wasPressed()) {
+        M5.Lcd.setCursor(10, 90);
+        M5.Lcd.println("Wiping WiFi data and restarting");
+        wipeWiFiData();
+        delay(4000);
+        ESP.restart();
+      }
+
+      if (M5.BtnB.wasPressed() || M5.Axp.GetBtnPress()) {
+        ESP.restart();
+      }
+      delay(1000);
+    }
   }
 
-  esp_wifi_set_ps(WIFI_PS_MAX_MODEM);  // Set max power save
+  setWiFiMaxPowerSave();
 }
 
 void initWiFiSmartConfig() {
@@ -85,8 +108,10 @@ void initWiFiSmartConfig() {
   M5.Lcd.setCursor(10, 50);
   M5.Lcd.println("Trying to connect");
 
-  while (waitingWiFiConnection(WiFi.status())) {
-    delay(500);
+  int count = 0;
+  while (waitingWiFiConnection(WiFi.status(), count)) {
+    count++;
+    delay(100);
   }
 
   M5.Lcd.setCursor(10, 60);
@@ -105,9 +130,9 @@ void initWiFiSmartConfig() {
   delay(500);
 }
 
-boolean waitingWiFiConnection(wl_status_t status) {
+boolean waitingWiFiConnection(wl_status_t status, int count) {
   if (status != WL_CONNECTED && status != WL_CONNECT_FAILED &&
-      status != WL_NO_SSID_AVAIL) {
+      status != WL_NO_SSID_AVAIL && count <= 200) {
     return true;
   }
 
@@ -116,7 +141,7 @@ boolean waitingWiFiConnection(wl_status_t status) {
 
 boolean connectionFailed(wl_status_t status) {
   if (status == WL_NO_SSID_AVAIL || status == WL_IDLE_STATUS ||
-      status == WL_CONNECT_FAILED) {
+      status == WL_CONNECT_FAILED || status == WL_DISCONNECTED) {
     return true;
   }
 
@@ -130,14 +155,14 @@ void saveWiFiDataInStorage(String ssid, String password) {
   preferences.end();
 }
 
-boolean haveDataInPrefs() {
+boolean dontHaveWiFiDataInPrefs() {
   String ssid = getPrefsSsidPasswd("ssid");
 
   if (ssid != "none") {
-    return true;
+    return false;
   }
 
-  return false;
+  return true;
 }
 
 String getSsidPasswd(String ssidPasswd) {
@@ -178,6 +203,10 @@ String getPrefsSsidPasswd(String ssidPasswd) {
   return value;
 }
 
+void setWiFiMaxPowerSave() { esp_wifi_set_ps(WIFI_PS_MAX_MODEM); }
+
+void setCpuMaxPowerSave() { setCpuFrequencyMhz(80); }
+
 void loop() {
   String blockheight;
 
@@ -192,7 +221,7 @@ void loop() {
   if (!isCharging()) {
     printBattery();
   }
-  delay(60000);  // 1 minute
+  delay(ONE_MINUTE);
 }
 
 String getBlockHeight() {
@@ -226,6 +255,10 @@ void printBattery() {
     return;
   }
   M5.Lcd.setCursor(200, 115);
+  if (batteryLevel <= 0) {
+    M5.Lcd.print("0%");
+    return;
+  }
   M5.Lcd.print(String(batteryLevel) + "%");
 }
 
