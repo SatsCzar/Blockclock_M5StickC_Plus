@@ -17,6 +17,7 @@ int batteryLevel;
 const float BATTERY_MIN_VOLTAGE = 3.06;
 const float BATTERY_MAX_VOLTAGE = 4.1;
 const int ONE_MINUTE = 60000;
+const int WIFI_CONNECTION_TIMEOUT = 200;
 
 void setup() {
   M5.begin(true, true, false);
@@ -131,8 +132,9 @@ void initWiFiSmartConfig() {
 }
 
 boolean waitingWiFiConnection(wl_status_t status, int count) {
-  if (status != WL_CONNECTED && status != WL_CONNECT_FAILED &&
-      status != WL_NO_SSID_AVAIL && count <= 200) {
+  if ((status != WL_CONNECTED && status != WL_CONNECT_FAILED &&
+       status != WL_NO_SSID_AVAIL) &&
+      count <= WIFI_CONNECTION_TIMEOUT) {
     return true;
   }
 
