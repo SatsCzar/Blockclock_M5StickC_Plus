@@ -1,6 +1,9 @@
 #include "powerManager.h"
 
 #include <M5StickCPlus.h>
+
+#include <cmath>
+
 #include "WiFiManager.h"
 #include "esp32-hal-cpu.h"
 #include "esp_wifi.h"
@@ -16,6 +19,10 @@ void setCpuMaxPowerSave() { setCpuFrequencyMhz(80); }
 bool isCharging() {
   float batteryCurrent = M5.Axp.GetBatCurrent();
   return batteryCurrent >= 0;
+}
+
+int getBatteryLevel() {
+  return calculateBatteryPercentage(M5.Axp.GetBatVoltage());
 }
 
 int calculateBatteryPercentage(float voltage) {

@@ -144,3 +144,5 @@ String getSsidPasswd(String ssidPasswd) {
     return String(reinterpret_cast<const char*>(conf.sta.password));
   }
 }
+
+wl_status_t getWiFiStatus() { return WiFi.status(); }
