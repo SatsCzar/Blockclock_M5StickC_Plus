@@ -36,14 +36,10 @@ void printBattery(int batteryLevel) {
     return;
   }
   M5.Lcd.setCursor(200, 115);
-  if (batteryLevel <= 0) {
-    M5.Lcd.print("0%");
-    return;
-  }
   M5.Lcd.print(String(batteryLevel) + "%");
 }
 
-void clearBatteryScreen() { M5.Lcd.fillRect(200, 115, 240, 135, BLACK); }
+void clearBatteryScreen() { M5.Lcd.fillRect(185, 115, 240, 135, BLACK); }
 
 void clearScreen() { M5.Lcd.fillRect(0, 0, 240, 135, BLACK); }
 

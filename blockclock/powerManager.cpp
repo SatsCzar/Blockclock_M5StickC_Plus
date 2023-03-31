@@ -32,5 +32,6 @@ int calculateBatteryPercentage(float voltage) {
                      (BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE) +
                  0);
   if (batteryPercentage > 100) return 100;
+  if (batteryPercentage < 0) return 0;
   return batteryPercentage;
 }
