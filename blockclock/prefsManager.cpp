@@ -2,7 +2,7 @@
 
 #include <M5StickCPlus.h>
 #include <Preferences.h>
-#include <string>
+
 
 Preferences preferences;
 

@@ -2,9 +2,11 @@
 #define CLIENT
 
 #include <M5StickCPlus.h>
-#include <string>
+
+#include "blockClockTypes.h"
+#include "blockClockUtils.h"
 
 String getBlockHeight();
-
+PriceData getBitcoinPrice(CurrencyState currencyState);
 
 #endif

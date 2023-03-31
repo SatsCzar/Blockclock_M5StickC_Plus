@@ -1,7 +1,7 @@
 #ifndef PREFSMANAGER
 #define PREFSMANAGER
 
-#include <string>
+
 #include <M5StickCPlus.h>
 
 void wipeWiFiData();

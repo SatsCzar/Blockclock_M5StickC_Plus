@@ -2,7 +2,7 @@
 
 #include <M5StickCPlus.h>
 
-#include <string>
+
 
 #include "WiFi.h"
 #include "WiFiType.h"
@@ -145,4 +145,4 @@ String getSsidPasswd(String ssidPasswd) {
   }
 }
 
-wl_status_t getWiFiStatus() { return WiFi.status(); }
+boolean isWiFiConnected() { return WiFi.status() == WL_CONNECTED; }
