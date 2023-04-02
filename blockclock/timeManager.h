@@ -7,5 +7,7 @@
 void timeManagerbegin();
 void syncRTCToNTP();
 time_t getTimestampFromRTC();
+RTC_TimeTypeDef getTime();
+RTC_DateTypeDef getDate();
 
 #endif

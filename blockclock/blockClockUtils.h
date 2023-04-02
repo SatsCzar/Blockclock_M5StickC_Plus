@@ -5,6 +5,7 @@
 
 enum ScreenState {
   BLOCKHEIGHT,
+  DATEANDTIME,
   PRICE,
   BTC_CHANGE,
   NUM_SCREEN_STATES

@@ -58,6 +58,17 @@ void printChange(String time, float change, int16_t x, int16_t y) {
   M5.Lcd.print(changeString + "%");
 }
 
+void drawnDateAndTimeScreen(String hours, String minutes, String ddmmyyyy) {
+  M5.Lcd.setTextSize(6);
+
+  M5.Lcd.setCursor(30, 10);
+  M5.Lcd.print(hours + ":" + minutes);
+  M5.Lcd.setCursor(30, 70);
+
+  M5.Lcd.setTextSize(3);
+  M5.Lcd.print(ddmmyyyy);
+}
+
 void printBattery(int batteryLevel) {
   M5.Lcd.setTextSize(2);
   if (batteryLevel == 100) {

@@ -26,7 +26,7 @@ void syncRTCToNTP() {
   currentTime.Seconds = timeinfo.tm_sec;
 
   RTC_DateTypeDef currentDate;
-  currentDate.Year = timeinfo.tm_year - 100;
+  currentDate.Year = timeinfo.tm_year + 1900;
   currentDate.Month = timeinfo.tm_mon + 1;
   currentDate.Date = timeinfo.tm_mday;
 
@@ -41,7 +41,7 @@ time_t getTimestampFromRTC() {
   M5.Rtc.GetData(&currentDate);
 
   struct tm timeinfo;
-  timeinfo.tm_year = currentDate.Year + 100;
+  timeinfo.tm_year = currentDate.Year + 1900;
   timeinfo.tm_mon = currentDate.Month - 1;
   timeinfo.tm_mday = currentDate.Date;
   timeinfo.tm_hour = currentTime.Hours;
@@ -49,4 +49,20 @@ time_t getTimestampFromRTC() {
   timeinfo.tm_sec = currentTime.Seconds;
 
   return mktime(&timeinfo);
+}
+
+RTC_TimeTypeDef getTime() {
+  RTC_TimeTypeDef timeNow;
+
+  M5.Rtc.GetTime(&timeNow);
+
+  return timeNow;
+}
+
+RTC_DateTypeDef getDate() {
+  RTC_DateTypeDef dateNow;
+
+  M5.Rtc.GetData(&dateNow);
+
+  return dateNow;
 }

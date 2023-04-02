@@ -14,6 +14,7 @@ ScreenState stateInScreen;
 String blockHeightGlobal;
 PriceData priceGlobal;
 
+uint8_t globalMinute = 61;
 int globalBatteryLevel = -1;
 unsigned long lastMinuteCheck = 60001;
 
@@ -73,6 +74,10 @@ void loop() {
   if (checkButtonBPressed()) {
     changeScreenState();
     updateScreen();
+  }
+
+  if (currentScreenState == DATEANDTIME) {
+    callDateTimeScreen();
   }
 
   delay(100);
@@ -190,6 +195,53 @@ void callChangeScreen() {
 
     clearScreenExceptBattery();
     drawnChangeScreen(priceGlobal);
+  }
+}
+
+void callDateTimeScreen() {
+  RTC_TimeTypeDef timeNow = getTime();
+  RTC_DateTypeDef dateNow = getDate();
+
+  String minutes;
+  String hours = String(timeNow.Hours);
+
+  String day;
+  String month;
+
+  if (timeNow.Minutes < 10) {
+    minutes = "0" + String(timeNow.Minutes);
+  }
+
+  if (timeNow.Minutes >= 10) {
+    minutes = timeNow.Minutes;
+  }
+
+  if (dateNow.Date < 10) {
+    day = "0" + String(dateNow.Date);
+  } else {
+    day = String(dateNow.Date);
+  }
+
+  if (dateNow.Month < 10) {
+    month = "0" + String(dateNow.Month);
+  } else {
+    month =  String(dateNow.Month);
+  }
+
+  String ddmmyyyy = day + "/" + month + "/" + String(dateNow.Year);
+
+  if (stateInScreen == DATEANDTIME) {
+    if (timeNow.Minutes != globalMinute) {
+      clearScreenExceptBattery();
+      drawnDateAndTimeScreen(hours, minutes, ddmmyyyy);
+      globalMinute = timeNow.Minutes;
+    }
+
+  } else {
+    stateInScreen = DATEANDTIME;
+    clearScreenExceptBattery();
+    drawnDateAndTimeScreen(hours, minutes, ddmmyyyy);
+    globalMinute = timeNow.Minutes;
   }
 }
 
