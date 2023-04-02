@@ -6,14 +6,15 @@
 #include "blockClockUtils.h"
 #include "client.h"
 #include "powerManager.h"
+#include "prefsManager.h"
 #include "screen.h"
+#include "timeManager.h"
 
 ScreenState stateInScreen;
 String blockHeightGlobal;
 PriceData priceGlobal;
 
 int globalBatteryLevel = -1;
-const unsigned long CHECK_INTERVAL = 60000;
 unsigned long lastMinuteCheck = 60001;
 
 void setup() {
@@ -31,6 +32,12 @@ void setup() {
 
   initWiFi();
 
+  M5.Lcd.setCursor(10, 70);
+  M5.Lcd.println("Configuring clock");
+  timeManagerbegin();
+
+  M5.Lcd.setCursor(10, 80);
+  M5.Lcd.println("Getting current block height");
   firstTimeInit();
   updateScreen();
 }
@@ -46,11 +53,20 @@ void loop() {
 
   M5.update();
 
-  if (checkButtonALongPressed()) {
-    if (stateInScreen == PRICE) {
-      priceGlobal.price = "";
-      changeCurrencyState();
-      callPriceScreen();
+  if (checkButtonAPressed()) {
+    switch (stateInScreen) {
+      case PRICE:
+        priceGlobal.price = "";
+        changeCurrencyState();
+        callPriceScreen();
+        break;
+      case BTC_CHANGE:
+        priceGlobal.price = "";
+        changeCurrencyState();
+        callChangeScreen();
+        break;
+      default:
+        break;
     }
   }
 
@@ -69,6 +85,9 @@ void updateScreen() {
       break;
     case PRICE:
       callPriceScreen();
+      break;
+    case BTC_CHANGE:
+      callChangeScreen();
       break;
     default:
       break;
@@ -108,12 +127,69 @@ void callPriceScreen() {
   if (isWiFiConnected()) {
     stateInScreen = PRICE;
 
+    PriceData pricePrefs = getBitcoinDataInPrefs(currentCurrencyState);
+
+    if (pricePrefs.price != "") {
+      time_t timestampFromRTC = getTimestampFromRTC();
+      int64_t difference = timestampFromRTC - pricePrefs.timestamp;
+
+      if (difference >= 300) {
+        priceGlobal = getBitcoinPrice(currentCurrencyState);
+
+        if (priceGlobal.price != "") {
+          saveBitcoinDataInPrefs(priceGlobal);
+        }
+      } else {
+        priceGlobal.price = pricePrefs.price;
+        priceGlobal.change1h = pricePrefs.change1h;
+        priceGlobal.change24h = pricePrefs.change24h;
+        priceGlobal.change30d = pricePrefs.change30d;
+        priceGlobal.change7d = pricePrefs.change7d;
+        priceGlobal.currency = pricePrefs.currency;
+      }
+
+      lastMinuteCheck = millis();
+    }
+
     if (isIntervalElapsed() || priceGlobal.price == "") {
       priceGlobal = getBitcoinPrice(currentCurrencyState);
+      saveBitcoinDataInPrefs(priceGlobal);
     }
 
     clearScreenExceptBattery();
-    drawnPriceScreen(priceGlobal, currentCurrencyState);
+    drawnPriceScreen(priceGlobal);
+  }
+}
+
+void callChangeScreen() {
+  if (isWiFiConnected()) {
+    stateInScreen = BTC_CHANGE;
+
+    PriceData pricePrefs = getBitcoinDataInPrefs(currentCurrencyState);
+
+    if (pricePrefs.price != "") {
+      time_t timestampFromRTC = getTimestampFromRTC();
+      int64_t difference = timestampFromRTC - pricePrefs.timestamp;
+
+      if (difference >= 300) {
+        priceGlobal = getBitcoinPrice(currentCurrencyState);
+        if (priceGlobal.price != "") {
+          saveBitcoinDataInPrefs(priceGlobal);
+        }
+      } else {
+        priceGlobal = pricePrefs;
+      }
+
+      lastMinuteCheck = millis();
+    }
+
+    if (isIntervalElapsed() || priceGlobal.price == "") {
+      priceGlobal = getBitcoinPrice(currentCurrencyState);
+      saveBitcoinDataInPrefs(priceGlobal);
+    }
+
+    clearScreenExceptBattery();
+    drawnChangeScreen(priceGlobal);
   }
 }
 
@@ -125,8 +201,8 @@ boolean checkButtonBPressed() {
   return false;
 }
 
-boolean checkButtonALongPressed() {
-  if (M5.BtnA.wasReleasefor(700)) {
+boolean checkButtonAPressed() {
+  if (M5.BtnA.isPressed()) {
     return true;
   }
 
@@ -134,8 +210,18 @@ boolean checkButtonALongPressed() {
 }
 
 boolean isIntervalElapsed() {
+  const unsigned long BLOCK_HEIGHT_CHECK_INTERVAL = 60000;
+  const unsigned long PRICE_CHANGE_CHECK_INTERVAL = 300000;
+  unsigned long checkInterval;
+
+  if (currentScreenState == BLOCKHEIGHT) {
+    checkInterval = BLOCK_HEIGHT_CHECK_INTERVAL;
+  } else {
+    checkInterval = PRICE_CHANGE_CHECK_INTERVAL;
+  }
+
   unsigned long currentTime = millis();
-  if (currentTime - lastMinuteCheck >= CHECK_INTERVAL) {
+  if (currentTime - lastMinuteCheck >= checkInterval) {
     return true;
   }
 

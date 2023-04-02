@@ -3,8 +3,6 @@
 
 #include <M5StickCPlus.h>
 
-
-
 #include "WiFiType.h"
 #include "esp_wifi.h"
 

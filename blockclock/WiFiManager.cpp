@@ -72,6 +72,9 @@ void initWiFi() {
     }
   }
 
+  M5.Lcd.setCursor(10, 60);
+  M5.Lcd.println("Successfuly connected to: " + ssid);
+
   setWiFiMaxPowerSave();
 }
 

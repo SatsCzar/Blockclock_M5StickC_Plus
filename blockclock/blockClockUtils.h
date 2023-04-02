@@ -6,6 +6,7 @@
 enum ScreenState {
   BLOCKHEIGHT,
   PRICE,
+  BTC_CHANGE,
   NUM_SCREEN_STATES
 };
 
