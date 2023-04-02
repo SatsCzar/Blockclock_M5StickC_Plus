@@ -37,6 +37,7 @@ PriceData getBitcoinPrice(CurrencyState currencyState) {
   if (httpCode == HTTP_CODE_OK) {
     deserializeJson(doc, http.getString());
 
+    priceData.currency = currencyState;
     priceData.price = intWithThousandSeparator((int)doc["price"]);
     priceData.change1h = (float)doc["delta_1h"];
     priceData.change24h = (float)doc["delta_24h"];
@@ -46,7 +47,7 @@ PriceData getBitcoinPrice(CurrencyState currencyState) {
     return priceData;
   }
 
-  priceData.price = "";
+  priceData.price = "ERR " + String(httpCode);
 
   return priceData;
 }
