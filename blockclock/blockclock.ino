@@ -247,7 +247,7 @@ void callDateTimeScreen() {
   }
 }
 
-boolean checkButtonBPressed() {
+bool checkButtonBPressed() {
   if (M5.BtnB.wasPressed()) {
     return true;
   }
@@ -255,7 +255,7 @@ boolean checkButtonBPressed() {
   return false;
 }
 
-boolean checkButtonAPressed() {
+bool checkButtonAPressed() {
   if (M5.BtnA.isPressed()) {
     return true;
   }
@@ -263,7 +263,7 @@ boolean checkButtonAPressed() {
   return false;
 }
 
-boolean isIntervalElapsed() {
+bool isIntervalElapsed() {
   const unsigned long BLOCK_HEIGHT_CHECK_INTERVAL = 60000;
   const unsigned long PRICE_CHANGE_CHECK_INTERVAL = 300000;
   unsigned long checkInterval;

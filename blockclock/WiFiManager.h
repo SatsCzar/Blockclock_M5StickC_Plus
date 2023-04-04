@@ -8,9 +8,9 @@
 
 void initWiFi();
 void initWiFiSmartConfig();
-boolean waitingWiFiConnection(wl_status_t status, int count);
-boolean connectionFailed(wl_status_t status);
+bool waitingWiFiConnection(wl_status_t status, int count);
+bool connectionFailed(wl_status_t status);
 String getSsidPasswd(String ssidPasswd);
-boolean isWiFiConnected();
+bool isWiFiConnected();
 
 #endif

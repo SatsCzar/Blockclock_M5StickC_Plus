@@ -9,7 +9,7 @@
 void wipeWiFiData();
 String getPrefsSsidPasswd(String ssidPasswd);
 void saveWiFiDataInStorage(String ssid, String password);
-boolean dontHaveWiFiDataInPrefs();
+bool dontHaveWiFiDataInPrefs();
 PriceData getBitcoinDataInPrefs(CurrencyState currency);
 void saveBitcoinDataInPrefs(PriceData priceData);
 

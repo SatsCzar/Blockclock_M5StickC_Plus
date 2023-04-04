@@ -39,7 +39,7 @@ void saveWiFiDataInStorage(String ssid, String password) {
   preferences.end();
 }
 
-boolean dontHaveWiFiDataInPrefs() {
+bool dontHaveWiFiDataInPrefs() {
   String ssid = getPrefsSsidPasswd("ssid");
 
   if (ssid != "none") {

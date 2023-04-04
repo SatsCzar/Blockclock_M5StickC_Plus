@@ -115,7 +115,7 @@ void initWiFiSmartConfig() {
   delay(500);
 }
 
-boolean waitingWiFiConnection(wl_status_t status, int count) {
+bool waitingWiFiConnection(wl_status_t status, int count) {
   if ((status != WL_CONNECTED && status != WL_CONNECT_FAILED &&
        status != WL_NO_SSID_AVAIL) &&
       count <= WIFI_CONNECTION_TIMEOUT) {
@@ -125,7 +125,7 @@ boolean waitingWiFiConnection(wl_status_t status, int count) {
   return false;
 }
 
-boolean connectionFailed(wl_status_t status) {
+bool connectionFailed(wl_status_t status) {
   if (status == WL_NO_SSID_AVAIL || status == WL_IDLE_STATUS ||
       status == WL_CONNECT_FAILED || status == WL_DISCONNECTED) {
     return true;
@@ -148,4 +148,4 @@ String getSsidPasswd(String ssidPasswd) {
   }
 }
 
-boolean isWiFiConnected() { return WiFi.status() == WL_CONNECTED; }
+bool isWiFiConnected() { return WiFi.status() == WL_CONNECTED; }
