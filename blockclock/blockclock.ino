@@ -134,7 +134,7 @@ void callPriceScreen() {
 
     PriceData pricePrefs = getBitcoinDataInPrefs(currentCurrencyState);
 
-    if (pricePrefs.price != "") {
+    if (pricePrefs.price != "" && pricePrefs.error == false) {
       time_t timestampFromRTC = getTimestampFromRTC();
       int64_t difference = timestampFromRTC - pricePrefs.timestamp;
 
@@ -156,7 +156,8 @@ void callPriceScreen() {
       lastMinuteCheck = millis();
     }
 
-    if (isIntervalElapsed() || priceGlobal.price == "") {
+    if (isIntervalElapsed() || priceGlobal.price == "" ||
+        priceGlobal.error == true) {
       priceGlobal = getBitcoinPrice(currentCurrencyState);
       saveBitcoinDataInPrefs(priceGlobal);
     }
@@ -172,7 +173,7 @@ void callChangeScreen() {
 
     PriceData pricePrefs = getBitcoinDataInPrefs(currentCurrencyState);
 
-    if (pricePrefs.price != "") {
+    if (pricePrefs.price != "" && pricePrefs.error == false) {
       time_t timestampFromRTC = getTimestampFromRTC();
       int64_t difference = timestampFromRTC - pricePrefs.timestamp;
 
@@ -188,7 +189,8 @@ void callChangeScreen() {
       lastMinuteCheck = millis();
     }
 
-    if (isIntervalElapsed() || priceGlobal.price == "") {
+    if (isIntervalElapsed() || priceGlobal.price == "" ||
+        priceGlobal.error == true) {
       priceGlobal = getBitcoinPrice(currentCurrencyState);
       saveBitcoinDataInPrefs(priceGlobal);
     }
@@ -225,7 +227,7 @@ void callDateTimeScreen() {
   if (dateNow.Month < 10) {
     month = "0" + String(dateNow.Month);
   } else {
-    month =  String(dateNow.Month);
+    month = String(dateNow.Month);
   }
 
   String ddmmyyyy = day + "/" + month + "/" + String(dateNow.Year);

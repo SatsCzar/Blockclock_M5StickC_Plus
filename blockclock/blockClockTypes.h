@@ -14,6 +14,7 @@ struct PriceData {
   float change7d;
   float change30d;
   time_t timestamp;
+  bool error;
 };
 
 #endif

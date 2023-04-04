@@ -49,6 +49,7 @@ PriceData getBitcoinPrice(CurrencyState currencyState) {
     priceData.change7d = (float)doc["delta_7d"];
     priceData.change30d = (float)doc["delta_30d"];
     priceData.timestamp = getTimestampFromRTC();
+    priceData.error = false;
 
     return priceData;
   }
@@ -58,6 +59,7 @@ PriceData getBitcoinPrice(CurrencyState currencyState) {
   priceData.change24h = (float)0;
   priceData.change7d = (float)0;
   priceData.change30d = (float)0;
+  priceData.error = true;
 
   return priceData;
 }
