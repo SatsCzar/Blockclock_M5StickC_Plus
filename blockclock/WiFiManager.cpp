@@ -2,10 +2,9 @@
 
 #include <M5StickCPlus.h>
 
-
-
 #include "WiFi.h"
 #include "WiFiType.h"
+#include "blockClockTypes.h"
 #include "esp_smartconfig.h"
 #include "esp_system.h"
 #include "esp_wifi.h"
@@ -149,3 +148,27 @@ String getSsidPasswd(String ssidPasswd) {
 }
 
 bool isWiFiConnected() { return WiFi.status() == WL_CONNECTED; }
+
+WiFiData getWiFiData() {
+  WiFiData wifiData;
+  wifi_ap_record_t wifiApInformation;
+
+  Serial.println("Caiu aqui");
+
+  esp_err_t err = esp_wifi_sta_get_ap_info(&wifiApInformation);
+
+  Serial.println(esp_err_to_name(err));
+
+  if (err != ESP_OK) {
+    Serial.println(esp_err_to_name(err));
+  }
+
+  Serial.println("1");
+  wifiData.connected = isWiFiConnected();
+  Serial.println("2");
+  wifiData.SignalStrength = wifiApInformation.rssi;
+  Serial.println("3");
+  wifiData.SSID = String(reinterpret_cast<char*>(wifiApInformation.ssid));
+
+  return wifiData;
+}

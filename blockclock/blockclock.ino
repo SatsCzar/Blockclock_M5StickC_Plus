@@ -55,20 +55,7 @@ void loop() {
   M5.update();
 
   if (checkButtonAPressed()) {
-    switch (stateInScreen) {
-      case PRICE:
-        priceGlobal.price = "";
-        changeCurrencyState();
-        callPriceScreen();
-        break;
-      case BTC_CHANGE:
-        priceGlobal.price = "";
-        changeCurrencyState();
-        callChangeScreen();
-        break;
-      default:
-        break;
-    }
+    buttonChangeScreen();
   }
 
   if (checkButtonBPressed()) {
@@ -83,6 +70,23 @@ void loop() {
   delay(100);
 }
 
+void buttonChangeScreen() {
+  switch (stateInScreen) {
+    case PRICE:
+      priceGlobal.price = "";
+      changeCurrencyState();
+      callPriceScreen();
+      break;
+    case BTC_CHANGE:
+      priceGlobal.price = "";
+      changeCurrencyState();
+      callChangeScreen();
+      break;
+    default:
+      break;
+  }
+}
+
 void updateScreen() {
   switch (currentScreenState) {
     case BLOCKHEIGHT:
@@ -93,6 +97,9 @@ void updateScreen() {
       break;
     case BTC_CHANGE:
       callChangeScreen();
+      break;
+    case WIFIDATA:
+      callWiFiDataScreen();
       break;
     default:
       break;
@@ -244,6 +251,16 @@ void callDateTimeScreen() {
     clearScreenExceptBattery();
     drawnDateAndTimeScreen(hours, minutes, ddmmyyyy);
     globalMinute = timeNow.Minutes;
+  }
+}
+
+void callWiFiDataScreen() {
+  if (stateInScreen != WIFIDATA) {
+    stateInScreen = WIFIDATA;
+    WiFiData wifiData = getWiFiData();
+
+    clearScreenExceptBattery();
+    drawnWiFiDataScreen(wifiData);
   }
 }
 

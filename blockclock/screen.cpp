@@ -69,6 +69,31 @@ void drawnDateAndTimeScreen(String hours, String minutes, String ddmmyyyy) {
   M5.Lcd.print(ddmmyyyy);
 }
 
+void drawnWiFiDataScreen(WiFiData wifiData) {
+  M5.Lcd.setTextSize(2);
+
+  String isConnected;
+
+  if (wifiData.connected == true) {
+    isConnected = "YES";
+  } else {
+    isConnected = "NO";
+  }
+
+  M5.Lcd.setTextSize(1);
+
+  M5.Lcd.setCursor(5, 10);
+  M5.Lcd.print("WiFi information");
+  M5.Lcd.setCursor(5, 20);
+  M5.Lcd.print("Is connected: " + isConnected);
+  M5.Lcd.setCursor(5, 30);
+  M5.Lcd.print("Connected to: " + wifiData.SSID);
+  M5.Lcd.setCursor(5, 40);
+  M5.Lcd.print("Signal strength: " + String(wifiData.SignalStrength));
+
+  resetTextColor();
+}
+
 void printBattery(int batteryLevel) {
   M5.Lcd.setTextSize(2);
   if (batteryLevel == 100) {

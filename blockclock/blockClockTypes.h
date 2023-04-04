@@ -17,4 +17,10 @@ struct PriceData {
   bool error;
 };
 
+struct WiFiData {
+  bool connected;
+  String SSID;
+  int8_t SignalStrength;
+};
+
 #endif

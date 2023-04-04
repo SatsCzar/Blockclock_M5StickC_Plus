@@ -8,6 +8,7 @@ enum ScreenState {
   DATEANDTIME,
   PRICE,
   BTC_CHANGE,
+  WIFIDATA,
   NUM_SCREEN_STATES
 };
 
