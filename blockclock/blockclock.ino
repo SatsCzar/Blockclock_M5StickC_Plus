@@ -240,6 +240,10 @@ void callDateTimeScreen() {
   String day;
   String month;
 
+  if (timeNow.Hours < 10) {
+    hours = "0" + String(timeNow.Hours);
+  }
+
   if (timeNow.Minutes < 10) {
     minutes = "0" + String(timeNow.Minutes);
   }
