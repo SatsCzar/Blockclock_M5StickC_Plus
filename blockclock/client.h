@@ -8,5 +8,6 @@
 
 String getBlockHeight();
 PriceData getBitcoinPrice(CurrencyState currencyState);
+RecommendedFees getRecommendedFees();
 
 #endif

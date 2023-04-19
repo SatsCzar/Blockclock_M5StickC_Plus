@@ -13,6 +13,7 @@
 ScreenState stateInScreen;
 String blockHeightGlobal;
 PriceData priceGlobal;
+RecommendedFees recommendedFeesGlobal;
 
 uint8_t globalMinute = 61;
 int globalBatteryLevel = -1;
@@ -92,6 +93,9 @@ void updateScreen() {
     case BLOCKHEIGHT:
       callBlockHeightScreen();
       break;
+    case RECOMMENDED_FEES:
+      callTransactionFeesScreen();
+      break;
     case PRICE:
       callPriceScreen();
       break;
@@ -131,6 +135,25 @@ void callBlockHeightScreen() {
       blockHeightGlobal = blockheight;
       clearScreenExceptBattery();
       drawBlockHeightScreen(blockHeightGlobal);
+    }
+  }
+}
+
+void callTransactionFeesScreen() {
+  RecommendedFees recommendedFees;
+
+  if (isWiFiConnected()) {
+    if (isIntervalElapsed() || recommendedFeesGlobal.high == 0) {
+      recommendedFees = getRecommendedFees();
+    } else {
+      recommendedFees = recommendedFeesGlobal;
+    }
+    if (recommendedFees.high != recommendedFeesGlobal.high ||
+        stateInScreen != RECOMMENDED_FEES) {
+      stateInScreen = RECOMMENDED_FEES;
+      recommendedFeesGlobal = recommendedFees;
+      clearScreen();
+      drawRecommendedFeesScreen(recommendedFees);
     }
   }
 }

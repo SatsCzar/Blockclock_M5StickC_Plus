@@ -24,6 +24,39 @@ String getBlockHeight() {
   return "ERR " + httpCode;
 }
 
+RecommendedFees getRecommendedFees() {
+  RecommendedFees recommendedFees;
+
+  http.begin(MEMPOOL_BASEURL + "/v1/fees/recommended");
+
+  int httpCode = http.GET();
+
+  if (httpCode == HTTP_CODE_OK) {
+    StaticJsonDocument<192> httpResponseJson;
+    String httpResponseBody = http.getString();
+
+    Serial.println(httpResponseBody);
+
+    deserializeJson(httpResponseJson, httpResponseBody);
+
+    recommendedFees.high = httpResponseJson["fastestFee"];
+    recommendedFees.medium = httpResponseJson["halfHourFee"];
+    recommendedFees.low = httpResponseJson["hourFee"];
+    recommendedFees.noPriority = httpResponseJson["economyFee"];
+    recommendedFees.error = false;
+
+    return recommendedFees;
+  }
+
+  recommendedFees.high = 0;
+  recommendedFees.medium = 0;
+  recommendedFees.low = 0;
+  recommendedFees.noPriority = 0;
+  recommendedFees.error = true;
+
+  return recommendedFees;
+}
+
 PriceData getBitcoinPrice(CurrencyState currencyState) {
   String currency = currencyStateToString(currencyState);
 

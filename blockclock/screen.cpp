@@ -13,6 +13,22 @@ void drawBlockHeightScreen(String blockHeight) {
   M5.Lcd.print(blockHeight);
 }
 
+void drawRecommendedFeesScreen(RecommendedFees recommendedFees) {
+  M5.Lcd.setCursor(5, 10);
+  M5.Lcd.setTextSize(2);
+  M5.Lcd.print("Recommended Fees:");
+
+  if (recommendedFees.error == true) {
+    M5.Lcd.setCursor(5, 50);
+    M5.Lcd.print("Erro");
+  }
+
+  printFee("High", recommendedFees.high, 5, 50);
+  printFee("Medium", recommendedFees.medium, 5, 70);
+  printFee("Low", recommendedFees.low, 5, 90);
+  printFee("No priority", recommendedFees.noPriority, 5, 110);
+}
+
 void drawnPriceScreen(PriceData priceData) {
   String symbol = currencyStateToSymbol(priceData.currency);
 
@@ -56,6 +72,15 @@ void printChange(String time, float change, int16_t x, int16_t y) {
   M5.Lcd.print(time + ": ");
   setBitcoinTextColor(change);
   M5.Lcd.print(changeString + "%");
+}
+
+void printFee(String text, uint16_t fee, int16_t x, int16_t y) {
+  String feeString = String(fee);
+
+  M5.Lcd.setCursor(x, y);
+
+  M5.Lcd.print(text + ": ");
+  M5.Lcd.print(feeString + "");
 }
 
 void drawnDateAndTimeScreen(String hours, String minutes, String ddmmyyyy) {

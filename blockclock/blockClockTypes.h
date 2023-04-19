@@ -2,9 +2,9 @@
 #define BLOCKCLOCKTYPES
 
 #include <M5StickCPlus.h>
+#include <time.h>
 
 #include "blockClockUtils.h"
-#include <time.h>
 
 struct PriceData {
   String price;
@@ -21,6 +21,14 @@ struct WiFiData {
   bool connected;
   String SSID;
   int8_t SignalStrength;
+};
+
+struct RecommendedFees {
+  uint16_t high;
+  uint16_t medium;
+  uint16_t low;
+  uint16_t noPriority;
+  bool error;
 };
 
 #endif
