@@ -26,7 +26,6 @@ void drawRecommendedFeesScreen(RecommendedFees recommendedFees) {
   printFee("High", recommendedFees.high, 5, 50);
   printFee("Medium", recommendedFees.medium, 5, 70);
   printFee("Low", recommendedFees.low, 5, 90);
-  printFee("No priority", recommendedFees.noPriority, 5, 110);
 }
 
 void drawnPriceScreen(PriceData priceData) {
@@ -112,7 +111,7 @@ void drawnWiFiDataScreen(WiFiData wifiData) {
   M5.Lcd.setCursor(5, 20);
   M5.Lcd.print("Is connected: " + isConnected);
   M5.Lcd.setCursor(5, 30);
-  M5.Lcd.print("Connected to: " + wifiData.SSID);
+  M5.Lcd.print("Connected to: " + truncateString(wifiData.SSID));
   M5.Lcd.setCursor(5, 40);
   M5.Lcd.print("Signal strength: " + String(wifiData.SignalStrength));
 
