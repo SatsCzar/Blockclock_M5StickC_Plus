@@ -56,7 +56,7 @@ void loop() {
   M5.update();
 
   if (checkButtonAPressed()) {
-    buttonChangeScreen();
+    buttonActionScreen();
   }
 
   if (checkButtonBPressed()) {
@@ -71,7 +71,7 @@ void loop() {
   delay(100);
 }
 
-void buttonChangeScreen() {
+void buttonActionScreen() {
   switch (stateInScreen) {
     case PRICE:
       priceGlobal.price = "";
@@ -83,6 +83,8 @@ void buttonChangeScreen() {
       changeCurrencyState();
       callChangeScreen();
       break;
+    case WIFIDATA:
+      callWiFiDataScreen(true);
     default:
       break;
   }
@@ -103,7 +105,7 @@ void updateScreen() {
       callChangeScreen();
       break;
     case WIFIDATA:
-      callWiFiDataScreen();
+      callWiFiDataScreen(false);
       break;
     default:
       break;
@@ -152,7 +154,7 @@ void callTransactionFeesScreen() {
         stateInScreen != RECOMMENDED_FEES) {
       stateInScreen = RECOMMENDED_FEES;
       recommendedFeesGlobal = recommendedFees;
-      clearScreen();
+      clearScreenExceptBattery();
       drawRecommendedFeesScreen(recommendedFees);
     }
   }
@@ -281,8 +283,8 @@ void callDateTimeScreen() {
   }
 }
 
-void callWiFiDataScreen() {
-  if (stateInScreen != WIFIDATA) {
+void callWiFiDataScreen(bool forceRender) {
+  if (stateInScreen != WIFIDATA || forceRender == true) {
     stateInScreen = WIFIDATA;
     WiFiData wifiData = getWiFiData();
 
