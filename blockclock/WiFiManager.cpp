@@ -28,7 +28,7 @@ void initWiFi() {
   String password = getPrefsSsidPasswd("pass");
 
   M5.Lcd.setCursor(10, 50);
-  M5.Lcd.println("Connecting to: " + ssid);
+  M5.Lcd.println("Connecting to: " + truncateString(ssid));
   M5.Lcd.setCursor(10, 60);
   M5.Lcd.println("Please Stand By");
   M5.Lcd.println("");
@@ -48,7 +48,7 @@ void initWiFi() {
 
   if (connectionFailed(WiFi.status())) {
     M5.Lcd.setCursor(10, 60);
-    M5.Lcd.println("Failed to connect to: " + ssid);
+    M5.Lcd.println("Failed to connect to: " + truncateString(ssid));
     M5.Lcd.setCursor(10, 70);
     M5.Lcd.println("Press main button to wipe WiFi data");
     M5.Lcd.setCursor(10, 80);
@@ -72,7 +72,8 @@ void initWiFi() {
   }
 
   M5.Lcd.setCursor(10, 60);
-  M5.Lcd.println("Successfuly connected to: " + ssid);
+  M5.Lcd.println("Successfuly connected to: " +
+                 truncateString(ssid));
 
   setWiFiMaxPowerSave();
 }

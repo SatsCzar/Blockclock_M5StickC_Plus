@@ -44,3 +44,12 @@ String intWithThousandSeparator(int number) {
 
   return result;
 }
+
+
+String truncateString(String input) {
+  if (input.length() > 10) {
+    input.remove(7);
+    input.concat("...");
+  }
+  return input;
+}
