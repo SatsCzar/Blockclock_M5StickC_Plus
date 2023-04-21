@@ -1,16 +1,18 @@
 #ifndef WIFIMANAGER
 #define WIFIMANAGER
 
-#include <string>
-
 #include <M5StickCPlus.h>
-#include "esp_wifi.h"
+
 #include "WiFiType.h"
+#include "esp_wifi.h"
+#include "blockClockTypes.h"
 
 void initWiFi();
 void initWiFiSmartConfig();
-boolean waitingWiFiConnection(wl_status_t status, int count);
-boolean connectionFailed(wl_status_t status);
+bool waitingWiFiConnection(wl_status_t status, int count);
+bool connectionFailed(wl_status_t status);
 String getSsidPasswd(String ssidPasswd);
+bool isWiFiConnected();
+WiFiData getWiFiData();
 
 #endif

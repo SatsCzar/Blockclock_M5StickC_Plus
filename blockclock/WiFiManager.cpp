@@ -2,10 +2,9 @@
 
 #include <M5StickCPlus.h>
 
-#include <string>
-
 #include "WiFi.h"
 #include "WiFiType.h"
+#include "blockClockTypes.h"
 #include "esp_smartconfig.h"
 #include "esp_system.h"
 #include "esp_wifi.h"
@@ -29,7 +28,7 @@ void initWiFi() {
   String password = getPrefsSsidPasswd("pass");
 
   M5.Lcd.setCursor(10, 50);
-  M5.Lcd.println("Connecting to: " + ssid);
+  M5.Lcd.println("Connecting to: " + truncateString(ssid));
   M5.Lcd.setCursor(10, 60);
   M5.Lcd.println("Please Stand By");
   M5.Lcd.println("");
@@ -49,7 +48,7 @@ void initWiFi() {
 
   if (connectionFailed(WiFi.status())) {
     M5.Lcd.setCursor(10, 60);
-    M5.Lcd.println("Failed to connect to: " + ssid);
+    M5.Lcd.println("Failed to connect to: " + truncateString(ssid));
     M5.Lcd.setCursor(10, 70);
     M5.Lcd.println("Press main button to wipe WiFi data");
     M5.Lcd.setCursor(10, 80);
@@ -71,6 +70,10 @@ void initWiFi() {
       delay(1000);
     }
   }
+
+  M5.Lcd.setCursor(10, 60);
+  M5.Lcd.println("Successfuly connected to: " +
+                 truncateString(ssid));
 
   setWiFiMaxPowerSave();
 }
@@ -112,7 +115,7 @@ void initWiFiSmartConfig() {
   delay(500);
 }
 
-boolean waitingWiFiConnection(wl_status_t status, int count) {
+bool waitingWiFiConnection(wl_status_t status, int count) {
   if ((status != WL_CONNECTED && status != WL_CONNECT_FAILED &&
        status != WL_NO_SSID_AVAIL) &&
       count <= WIFI_CONNECTION_TIMEOUT) {
@@ -122,7 +125,7 @@ boolean waitingWiFiConnection(wl_status_t status, int count) {
   return false;
 }
 
-boolean connectionFailed(wl_status_t status) {
+bool connectionFailed(wl_status_t status) {
   if (status == WL_NO_SSID_AVAIL || status == WL_IDLE_STATUS ||
       status == WL_CONNECT_FAILED || status == WL_DISCONNECTED) {
     return true;
@@ -143,4 +146,28 @@ String getSsidPasswd(String ssidPasswd) {
   if (ssidPasswd == "PASS") {
     return String(reinterpret_cast<const char*>(conf.sta.password));
   }
+}
+
+bool isWiFiConnected() { return WiFi.status() == WL_CONNECTED; }
+
+WiFiData getWiFiData() {
+  WiFiData wifiData;
+  wifi_ap_record_t wifiApInformation;
+
+  esp_err_t err = esp_wifi_sta_get_ap_info(&wifiApInformation);
+
+  Serial.println(esp_err_to_name(err));
+
+  if (err != ESP_OK) {
+    Serial.println(esp_err_to_name(err));
+  }
+
+  Serial.println("1");
+  wifiData.connected = isWiFiConnected();
+  Serial.println("2");
+  wifiData.SignalStrength = wifiApInformation.rssi;
+  Serial.println("3");
+  wifiData.SSID = String(reinterpret_cast<char*>(wifiApInformation.ssid));
+
+  return wifiData;
 }
