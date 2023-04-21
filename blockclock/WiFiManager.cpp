@@ -154,8 +154,6 @@ WiFiData getWiFiData() {
   WiFiData wifiData;
   wifi_ap_record_t wifiApInformation;
 
-  Serial.println("Caiu aqui");
-
   esp_err_t err = esp_wifi_sta_get_ap_info(&wifiApInformation);
 
   Serial.println(esp_err_to_name(err));
