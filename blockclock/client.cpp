@@ -11,88 +11,94 @@
 
 const String MEMPOOL_BASEURL = "https://mempool.space/api";
 const String COINLIB_BASEURL = "https://coinlib.io/api/v1";
-const String COINLIB_APIKEY = "3602a548384fe25c";
 
-HTTPClient http;
+class ApiClient {
+ public:
+  explicit ApiClient(const String& apiKey) : coinlibApiKey(apiKey) {}
 
-String getBlockHeight() {
-  http.begin(MEMPOOL_BASEURL + "/blocks/tip/height");
-  int httpCode = http.GET();
-  if (httpCode == HTTP_CODE_OK) {
-    return http.getString();
+  String getBlockHeight() {
+    http.begin(MEMPOOL_BASEURL + "/blocks/tip/height");
+    int httpCode = http.GET();
+    if (httpCode == HTTP_CODE_OK) {
+      return http.getString();
+    }
+    return "ERR " + httpCode;
   }
-  return "ERR " + httpCode;
-}
 
-RecommendedFees getRecommendedFees() {
-  RecommendedFees recommendedFees;
+  RecommendedFees getRecommendedFees() {
+    RecommendedFees recommendedFees;
 
-  http.begin(MEMPOOL_BASEURL + "/v1/fees/recommended");
+    http.begin(MEMPOOL_BASEURL + "/v1/fees/recommended");
 
-  int httpCode = http.GET();
+    int httpCode = http.GET();
 
-  if (httpCode == HTTP_CODE_OK) {
-    StaticJsonDocument<192> httpResponseJson;
-    String httpResponseBody = http.getString();
+    if (httpCode == HTTP_CODE_OK) {
+      StaticJsonDocument<192> httpResponseJson;
+      String httpResponseBody = http.getString();
 
-    Serial.println(httpResponseBody);
+      Serial.println(httpResponseBody);
 
-    deserializeJson(httpResponseJson, httpResponseBody);
+      deserializeJson(httpResponseJson, httpResponseBody);
 
-    recommendedFees.high = httpResponseJson["fastestFee"];
-    recommendedFees.medium = httpResponseJson["halfHourFee"];
-    recommendedFees.low = httpResponseJson["hourFee"];
-    recommendedFees.noPriority = httpResponseJson["economyFee"];
-    recommendedFees.error = false;
+      recommendedFees.high = httpResponseJson["fastestFee"];
+      recommendedFees.medium = httpResponseJson["halfHourFee"];
+      recommendedFees.low = httpResponseJson["hourFee"];
+      recommendedFees.noPriority = httpResponseJson["economyFee"];
+      recommendedFees.error = false;
+
+      return recommendedFees;
+    }
+
+    recommendedFees.high = 0;
+    recommendedFees.medium = 0;
+    recommendedFees.low = 0;
+    recommendedFees.noPriority = 0;
+    recommendedFees.error = true;
 
     return recommendedFees;
   }
 
-  recommendedFees.high = 0;
-  recommendedFees.medium = 0;
-  recommendedFees.low = 0;
-  recommendedFees.noPriority = 0;
-  recommendedFees.error = true;
+  PriceData getBitcoinPrice(CurrencyState currencyState) {
+    String currency = currencyStateToString(currencyState);
 
-  return recommendedFees;
-}
+    DynamicJsonDocument doc(4096);
 
-PriceData getBitcoinPrice(CurrencyState currencyState) {
-  String currency = currencyStateToString(currencyState);
+    const String url = COINLIB_BASEURL + "/coin?key=" + coinlibApiKey +
+                       "&pref=" + currency + "&symbol=BTC";
 
-  DynamicJsonDocument doc(4096);
+    http.begin(url);
 
-  const String url = COINLIB_BASEURL + "/coin?key=" + COINLIB_APIKEY +
-                     "&pref=" + currency + "&symbol=BTC";
+    int httpCode = http.GET();
 
-  http.begin(url);
+    PriceData priceData;
+    priceData.currency = currencyState;
 
-  int httpCode = http.GET();
+    if (httpCode == HTTP_CODE_OK) {
+      String httpResponseBody = http.getString();
+      deserializeJson(doc, httpResponseBody);
 
-  PriceData priceData;
-  priceData.currency = currencyState;
+      priceData.price = intWithThousandSeparator((int)doc["price"]);
+      priceData.change1h = (float)doc["delta_1h"];
+      priceData.change24h = (float)doc["delta_24h"];
+      priceData.change7d = (float)doc["delta_7d"];
+      priceData.change30d = (float)doc["delta_30d"];
+      priceData.timestamp = getTimestampFromRTC();
+      priceData.error = false;
 
-  if (httpCode == HTTP_CODE_OK) {
-    String httpResponseBody = http.getString();
-    deserializeJson(doc, httpResponseBody);
+      return priceData;
+    }
 
-    priceData.price = intWithThousandSeparator((int)doc["price"]);
-    priceData.change1h = (float)doc["delta_1h"];
-    priceData.change24h = (float)doc["delta_24h"];
-    priceData.change7d = (float)doc["delta_7d"];
-    priceData.change30d = (float)doc["delta_30d"];
-    priceData.timestamp = getTimestampFromRTC();
-    priceData.error = false;
+    priceData.price = "ERR " + String(httpCode);
+    priceData.change1h = (float)0;
+    priceData.change24h = (float)0;
+    priceData.change7d = (float)0;
+    priceData.change30d = (float)0;
+    priceData.error = true;
 
     return priceData;
   }
 
-  priceData.price = "ERR " + String(httpCode);
-  priceData.change1h = (float)0;
-  priceData.change24h = (float)0;
-  priceData.change7d = (float)0;
-  priceData.change30d = (float)0;
-  priceData.error = true;
-
-  return priceData;
-}
+ private:
+  String coinlibApiKey;
+  HTTPClient http;
+};

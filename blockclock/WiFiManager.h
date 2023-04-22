@@ -1,11 +1,17 @@
 #ifndef WIFIMANAGER
 #define WIFIMANAGER
 
+#include "userBoardDefines.h"
+#ifdef M5STACK
 #include <M5StickCPlus.h>
+#endif
+#ifdef GENERIC_ESP32
+#include <Arduino.h>
+#endif
 
 #include "WiFiType.h"
-#include "esp_wifi.h"
 #include "blockClockTypes.h"
+#include "esp_wifi.h"
 
 void initWiFi();
 void initWiFiSmartConfig();

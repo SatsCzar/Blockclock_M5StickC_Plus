@@ -1,6 +1,13 @@
 #include "WiFiManager.h"
 
+#include "userBoardDefines.h"
+
+#ifdef M5STACK
 #include <M5StickCPlus.h>
+#endif
+#ifdef GENERIC_ESP32
+#include <Arduino.h>
+#endif
 
 #include "WiFi.h"
 #include "WiFiType.h"
@@ -10,12 +17,11 @@
 #include "esp_wifi.h"
 #include "powerManager.h"
 #include "prefsManager.h"
+#include "screen.h"
 
 const int WIFI_CONNECTION_TIMEOUT = 200;
 
 void initWiFi() {
-  M5.Lcd.setTextSize(1);
-
   WiFi.mode(WIFI_AP_STA);
 
   if (dontHaveWiFiDataInPrefs()) {
@@ -27,11 +33,8 @@ void initWiFi() {
   String ssid = getPrefsSsidPasswd("ssid");
   String password = getPrefsSsidPasswd("pass");
 
-  M5.Lcd.setCursor(10, 50);
-  M5.Lcd.println("Connecting to: " + truncateString(ssid));
-  M5.Lcd.setCursor(10, 60);
-  M5.Lcd.println("Please Stand By");
-  M5.Lcd.println("");
+  drawStringPush("Connecting to: " + truncateString(ssid), 10, 50, 1);
+  drawStringPush("Please Stand By", 10, 60, 1);
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid.c_str(), password.c_str());
@@ -39,26 +42,21 @@ void initWiFi() {
   int count = 0;
 
   while (waitingWiFiConnection(WiFi.status(), count)) {
-    M5.Lcd.print(".");
     count++;
     delay(100);
   }
 
-  M5.Lcd.fillRect(0, 60, 240, 135, BLACK);
+  clearHalfScreen();
 
   if (connectionFailed(WiFi.status())) {
-    M5.Lcd.setCursor(10, 60);
-    M5.Lcd.println("Failed to connect to: " + truncateString(ssid));
-    M5.Lcd.setCursor(10, 70);
-    M5.Lcd.println("Press main button to wipe WiFi data");
-    M5.Lcd.setCursor(10, 80);
-    M5.Lcd.println("Or press other button to restart");
+    drawStringPush("Failed to connect to: " + truncateString(ssid), 10, 60, 1);
+    drawStringPush("Press main button to wipe WiFi data", 10, 70, 1);
+    drawStringPush("Or press other button to restart", 10, 80, 1);
 
     while (true) {
       M5.update();
       if (M5.BtnA.wasPressed()) {
-        M5.Lcd.setCursor(10, 90);
-        M5.Lcd.println("Wiping WiFi data and restarting");
+        drawStringPush("Wiping WiFi data and restarting", 10, 90, 1);
         wipeWiFiData();
         delay(4000);
         ESP.restart();
@@ -71,9 +69,8 @@ void initWiFi() {
     }
   }
 
-  M5.Lcd.setCursor(10, 60);
-  M5.Lcd.println("Successfuly connected to: " +
-                 truncateString(ssid));
+  drawStringPush("Successfuly connected to: " + truncateString(ssid), 10, 60,
+                 1);
 
   setWiFiMaxPowerSave();
 }
@@ -81,17 +78,14 @@ void initWiFi() {
 void initWiFiSmartConfig() {
   WiFi.beginSmartConfig(SC_TYPE_ESPTOUCH);
 
-  M5.Lcd.setCursor(10, 30);
-  M5.Lcd.println("Waiting for SmartConfig");
+  drawStringPush("Waiting for SmartConfig", 10, 30, 1);
 
   while (!WiFi.smartConfigDone()) {
     delay(500);
   }
 
-  M5.Lcd.setCursor(10, 40);
-  M5.Lcd.println("Smartconfig received");
-  M5.Lcd.setCursor(10, 50);
-  M5.Lcd.println("Trying to connect");
+  drawStringPush("Smartconfig received", 10, 40, 1);
+  drawStringPush("Trying to connect", 10, 50, 1);
 
   int count = 0;
   while (waitingWiFiConnection(WiFi.status(), count)) {
@@ -99,18 +93,15 @@ void initWiFiSmartConfig() {
     delay(100);
   }
 
-  M5.Lcd.setCursor(10, 60);
-  M5.Lcd.println("Connected to: " + WiFi.SSID());
-  M5.Lcd.setCursor(10, 70);
-  M5.Lcd.println("Saving WiFi data");
+  drawStringPush("Connected to: " + WiFi.SSID(), 10, 60, 1);
+  drawStringPush("Saving WiFi data", 10, 70, 1);
 
   String ssid = getSsidPasswd("SSID");
   String password = getSsidPasswd("PASS");
 
   saveWiFiDataInStorage(ssid, password);
 
-  M5.Lcd.setCursor(10, 80);
-  M5.Lcd.println("Restarting");
+  drawStringPush("Restarting", 10, 80, 1);
 
   delay(500);
 }

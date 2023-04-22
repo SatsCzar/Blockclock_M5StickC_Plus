@@ -1,19 +1,31 @@
 #include "timeManager.h"
 
-#include <M5StickCPlus.h>
 #include <time.h>
+
+#include "userBoardDefines.h"
+
+#ifdef M5STACK
+#include <M5StickCPlus.h>
+#endif
+
+#ifdef GENERIC_ESP32
+#include <Arduino.h>
+#endif
 
 const long gmtOffset_sec = 0;
 const int daylightOffset_sec = -3600 * 3;
 const char* ntpServer = "pool.ntp.org";
 
 void timeManagerbegin() {
-  M5.Rtc.begin();
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
 
+#ifdef M5STACK
+  M5.Rtc.begin();
   syncRTCToNTP();
+#endif
 }
 
+#ifdef M5STACK
 void syncRTCToNTP() {
   struct tm timeinfo;
   if (!getLocalTime(&timeinfo)) {
@@ -33,12 +45,12 @@ void syncRTCToNTP() {
   M5.Rtc.SetTime(&currentTime);
   M5.Rtc.SetData(&currentDate);
 }
+#endif
 
 time_t getTimestampFromRTC() {
-  RTC_TimeTypeDef currentTime;
-  RTC_DateTypeDef currentDate;
-  M5.Rtc.GetTime(&currentTime);
-  M5.Rtc.GetData(&currentDate);
+#ifdef M5STACK
+  RTC_TimeTypeDef currentTime = getTime();
+  RTC_DateTypeDef currentDate = getDate();
 
   struct tm timeinfo;
   timeinfo.tm_year = currentDate.Year + 1900;
@@ -49,8 +61,52 @@ time_t getTimestampFromRTC() {
   timeinfo.tm_sec = currentTime.Seconds;
 
   return mktime(&timeinfo);
+#endif
+
+#ifdef GENERIC_ESP32
+  struct tm timeinfo;
+  getLocalTime(&timeinfo);
+
+  time_t timestamp = mktime(&timeinfo);
+
+  return timestamp;
+#endif
 }
 
+BlockClockDateAndTime getDateAndTime() {
+#ifdef M5STACK
+  RTC_TimeTypeDef currentTime = getTime();
+  RTC_DateTypeDef currentDate = getDate();
+
+  BlockClockDateAndTime currentDateAndTime;
+  currentDateAndTime.year = currentDate.Year;
+  currentDateAndTime.month = currentDate.Month;
+  currentDateAndTime.day = currentDate.Date;
+  currentDateAndTime.hour = currentTime.Hours;
+  currentDateAndTime.minutes = currentTime.Minutes;
+  currentDateAndTime.seconds = currentTime.Seconds;
+
+  return currentDateAndTime;
+#endif
+
+#ifdef GENERIC_ESP32
+  struct tm timeinfo;
+  getLocalTime(&timeinfo);
+
+  BlockClockDateAndTime currentDateAndTime;
+
+  currentDateAndTime.year = timeinfo.tm_year + 1900;
+  currentDateAndTime.month = timeinfo.tm_mon + 1;
+  currentDateAndTime.day = timeinfo.tm_mday;
+  currentDateAndTime.hour = timeinfo.tm_hour;
+  currentDateAndTime.minutes = timeinfo.tm_min;
+  currentDateAndTime.seconds = timeinfo.tm_sec;
+
+  return currentDateAndTime;
+#endif
+}
+
+#ifdef M5STACK
 RTC_TimeTypeDef getTime() {
   RTC_TimeTypeDef timeNow;
 
@@ -66,3 +122,4 @@ RTC_DateTypeDef getDate() {
 
   return dateNow;
 }
+#endif

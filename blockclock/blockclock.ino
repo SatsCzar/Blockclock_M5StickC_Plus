@@ -7,6 +7,7 @@
 #include "client.h"
 #include "powerManager.h"
 #include "prefsManager.h"
+#include "project_defines.h"
 #include "screen.h"
 #include "timeManager.h"
 
@@ -15,31 +16,30 @@ String blockHeightGlobal;
 PriceData priceGlobal;
 RecommendedFees recommendedFeesGlobal;
 
+ApiClient apiClient("3602a548384fe25c");
+
 uint8_t globalMinute = 61;
 int globalBatteryLevel = -1;
 unsigned long lastMinuteCheck = 60001;
 
 void setup() {
   M5.begin(true, true, true);
-  M5.Rtc.begin();
+  initScreen();
 
   setCpuMaxPowerSave();
 
-  M5.Lcd.setTextSize(2);
-  M5.Lcd.setRotation(1);
   M5.Axp.ScreenBreath(9);
 
-  M5.Lcd.setCursor(10, 10);
-  M5.Lcd.println("BLOCKCLOCK");
+  drawStringPush("BLOCKCLOCK", 10, 10, 2);
 
   initWiFi();
 
-  M5.Lcd.setCursor(10, 70);
-  M5.Lcd.println("Configuring clock");
+  drawStringPush("Configuring clock", 10, 70, 1);
+
   timeManagerbegin();
 
-  M5.Lcd.setCursor(10, 80);
-  M5.Lcd.println("Getting current block height");
+  drawStringPush("Getting current block height", 10, 80, 1);
+
   firstTimeInit();
   updateScreen();
 }
@@ -119,7 +119,6 @@ void updateScreen() {
 void firstTimeInit() {
   if (isWiFiConnected()) {
     blockHeightGlobal = getBlockHeight();
-    clearScreen();
     drawBlockHeightScreen(blockHeightGlobal);
   }
 }
@@ -128,14 +127,13 @@ void callBlockHeightScreen() {
   String blockheight;
   if (isWiFiConnected()) {
     if (isIntervalElapsed()) {
-      blockheight = getBlockHeight();
+      blockheight = apiClient.getBlockHeight();
     } else {
       blockheight = blockHeightGlobal;
     }
     if (blockheight != blockHeightGlobal || stateInScreen != BLOCKHEIGHT) {
       stateInScreen = BLOCKHEIGHT;
       blockHeightGlobal = blockheight;
-      clearScreenExceptBattery();
       drawBlockHeightScreen(blockHeightGlobal);
     }
   }
@@ -146,7 +144,7 @@ void callTransactionFeesScreen() {
 
   if (isWiFiConnected()) {
     if (isIntervalElapsed() || recommendedFeesGlobal.high == 0) {
-      recommendedFees = getRecommendedFees();
+      recommendedFees = apiClient.getRecommendedFees();
     } else {
       recommendedFees = recommendedFeesGlobal;
     }
@@ -154,7 +152,6 @@ void callTransactionFeesScreen() {
         stateInScreen != RECOMMENDED_FEES) {
       stateInScreen = RECOMMENDED_FEES;
       recommendedFeesGlobal = recommendedFees;
-      clearScreenExceptBattery();
       drawRecommendedFeesScreen(recommendedFees);
     }
   }
@@ -171,7 +168,7 @@ void callPriceScreen() {
       int64_t difference = timestampFromRTC - pricePrefs.timestamp;
 
       if (difference >= 300) {
-        priceGlobal = getBitcoinPrice(currentCurrencyState);
+        priceGlobal = apiClient.getBitcoinPrice(currentCurrencyState);
 
         if (priceGlobal.price != "") {
           saveBitcoinDataInPrefs(priceGlobal);
@@ -194,7 +191,6 @@ void callPriceScreen() {
       saveBitcoinDataInPrefs(priceGlobal);
     }
 
-    clearScreenExceptBattery();
     drawnPriceScreen(priceGlobal);
   }
 }
@@ -210,7 +206,7 @@ void callChangeScreen() {
       int64_t difference = timestampFromRTC - pricePrefs.timestamp;
 
       if (difference >= 300) {
-        priceGlobal = getBitcoinPrice(currentCurrencyState);
+        priceGlobal = apiClient.getBitcoinPrice(currentCurrencyState);
         if (priceGlobal.price != "") {
           saveBitcoinDataInPrefs(priceGlobal);
         }
@@ -223,7 +219,7 @@ void callChangeScreen() {
 
     if (isIntervalElapsed() || priceGlobal.price == "" ||
         priceGlobal.error == true) {
-      priceGlobal = getBitcoinPrice(currentCurrencyState);
+      priceGlobal = apiClient.getBitcoinPrice(currentCurrencyState);
       saveBitcoinDataInPrefs(priceGlobal);
     }
 
@@ -233,53 +229,46 @@ void callChangeScreen() {
 }
 
 void callDateTimeScreen() {
-  RTC_TimeTypeDef timeNow = getTime();
-  RTC_DateTypeDef dateNow = getDate();
+  BlockClockDateAndTime currentDateAndTime = getDateAndTime();
 
-  String minutes;
-  String hours = String(timeNow.Hours);
+  String minutes = String(currentDateAndTime.minutes);
+  String hours = String(currentDateAndTime.hour);
 
   String day;
   String month;
 
-  if (timeNow.Hours < 10) {
-    hours = "0" + String(timeNow.Hours);
+  if (currentDateAndTime.hour < 10) {
+    hours = "0" + String(currentDateAndTime.hour);
   }
 
-  if (timeNow.Minutes < 10) {
-    minutes = "0" + String(timeNow.Minutes);
+  if (currentDateAndTime.minutes < 10) {
+    minutes = "0" + String(currentDateAndTime.minutes);
   }
 
-  if (timeNow.Minutes >= 10) {
-    minutes = timeNow.Minutes;
-  }
-
-  if (dateNow.Date < 10) {
-    day = "0" + String(dateNow.Date);
+  if (currentDateAndTime.day < 10) {
+    day = "0" + String(currentDateAndTime.day);
   } else {
-    day = String(dateNow.Date);
+    day = String(currentDateAndTime.day);
   }
 
-  if (dateNow.Month < 10) {
-    month = "0" + String(dateNow.Month);
+  if (currentDateAndTime.month < 10) {
+    month = "0" + String(currentDateAndTime.month);
   } else {
-    month = String(dateNow.Month);
+    month = String(currentDateAndTime.month);
   }
 
-  String ddmmyyyy = day + "/" + month + "/" + String(dateNow.Year);
+  String ddmmyyyy = day + "/" + month + "/" + String(currentDateAndTime.year);
 
   if (stateInScreen == DATEANDTIME) {
-    if (timeNow.Minutes != globalMinute) {
-      clearScreenExceptBattery();
+    if (currentDateAndTime.minutes != globalMinute) {
       drawnDateAndTimeScreen(hours, minutes, ddmmyyyy);
-      globalMinute = timeNow.Minutes;
+      globalMinute = currentDateAndTime.minutes;
     }
 
   } else {
     stateInScreen = DATEANDTIME;
-    clearScreenExceptBattery();
     drawnDateAndTimeScreen(hours, minutes, ddmmyyyy);
-    globalMinute = timeNow.Minutes;
+    globalMinute = currentDateAndTime.minutes;
   }
 }
 
@@ -288,7 +277,6 @@ void callWiFiDataScreen(bool forceRender) {
     stateInScreen = WIFIDATA;
     WiFiData wifiData = getWiFiData();
 
-    clearScreenExceptBattery();
     drawnWiFiDataScreen(wifiData);
   }
 }

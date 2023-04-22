@@ -6,6 +6,10 @@
 #include "blockClockTypes.h"
 #include "blockClockUtils.h"
 
+void initScreen();
+void drawStringPush(String value, int32_t x, int32_t y, uint8_t size);
+void drawString(String value, int32_t x, int32_t y, uint8_t size);
+void clearScreen();
 void drawBlockHeightScreen(String blockheight);
 void drawRecommendedFeesScreen(RecommendedFees recommendedFees);
 void drawnPriceScreen(PriceData priceData);
@@ -16,9 +20,10 @@ void printFee(String text, uint16_t fee, int16_t x, int16_t y);
 void drawnWiFiDataScreen(WiFiData wifiData);
 void printBattery(int batteryLevel);
 void clearBatteryScreen();
-void clearScreen();
 void clearScreenExceptBattery();
 void setBitcoinTextColor(float delta);
 void resetTextColor();
+void clearHalfScreen();
+void clearSpriteExceptBattery();
 
 #endif
