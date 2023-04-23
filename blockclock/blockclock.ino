@@ -4,10 +4,9 @@
 #include "WiFiManager.h"
 #include "blockClockTypes.h"
 #include "blockClockUtils.h"
-#include "client.h"
+#include "blockClockClient.h"
 #include "powerManager.h"
 #include "prefsManager.h"
-#include "project_defines.h"
 #include "screen.h"
 #include "timeManager.h"
 
@@ -16,7 +15,7 @@ String blockHeightGlobal;
 PriceData priceGlobal;
 RecommendedFees recommendedFeesGlobal;
 
-ApiClient apiClient("3602a548384fe25c");
+ApiClient apiClient("YOUR_API_KEY_HERE");
 
 uint8_t globalMinute = 61;
 int globalBatteryLevel = -1;
@@ -118,7 +117,7 @@ void updateScreen() {
 
 void firstTimeInit() {
   if (isWiFiConnected()) {
-    blockHeightGlobal = getBlockHeight();
+    blockHeightGlobal = apiClient.getBlockHeight();
     drawBlockHeightScreen(blockHeightGlobal);
   }
 }
@@ -187,7 +186,7 @@ void callPriceScreen() {
 
     if (isIntervalElapsed() || priceGlobal.price == "" ||
         priceGlobal.error == true) {
-      priceGlobal = getBitcoinPrice(currentCurrencyState);
+      priceGlobal = apiClient.getBitcoinPrice(currentCurrencyState);
       saveBitcoinDataInPrefs(priceGlobal);
     }
 
