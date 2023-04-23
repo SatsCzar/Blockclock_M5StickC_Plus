@@ -1,13 +1,13 @@
 # Blockclock for M5Stick CPlus
 
-This is a versatile Bitcoin blockclock for the M5StickC Plus (ESP32) that connects to Wi-Fi and fetches data from mempool.space every minute. The updated version now supports multiple screens, displaying additional information such as price, transaction fees, date and time, and more.
+This is a versatile Bitcoin blockclock for the M5StickC Plus (ESP32) that connects to Wi-Fi and fetches data from mempool.space every minute. The updated version now supports multiple screens, displaying additional information such as price, transaction fees, date and time, and more. This version requires the ESP32-Bitcoin-BlockClock-Library, which can be found on [GitHub](https://github.com/SatsCzar/ESP32-Bitcoin-BlockClock-Library).
 
 ![M5StickC running blockclock](https://raw.githubusercontent.com/SatsCzar/Blockclock_M5StickC_Plus/master/m5stickblockclock.jpg)
 
 ## Installing
 
 1. Download the latest version of Arduino IDE
-2. Follow this [tutorial](https://docs.m5stack.com/en/quick_start/m5stickc_plus/arduino) to install the required libraries, which include M5StickC Plus and ArduinoJson
+2. Follow this [tutorial](https://docs.m5stack.com/en/quick_start/m5stickc_plus/arduino) to install the required libraries, which include M5StickC Plus, ArduinoJson, and [ESP32-Bitcoin-BlockClock-Library](https://github.com/SatsCzar/ESP32-Bitcoin-BlockClock-Library)
 3. Clone the repository and open the blockclock.ino file with the Arduino IDE
 4. Select the COM port corresponding to your M5Stick and the model
 5. Upload the code
