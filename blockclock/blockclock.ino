@@ -25,7 +25,7 @@ void setup() {
   M5.begin(true, true, true);
   initScreen();
 
-  setCpuMaxPowerSave();
+  setCpuNormalClock();
 
   M5.Axp.ScreenBreath(9);
 
