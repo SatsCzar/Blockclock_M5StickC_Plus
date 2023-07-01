@@ -2,20 +2,23 @@
 #include <Preferences.h>
 
 #include "WiFiManager.h"
+#include "blockClockClient.h"
 #include "blockClockTypes.h"
 #include "blockClockUtils.h"
-#include "blockClockClient.h"
 #include "powerManager.h"
 #include "prefsManager.h"
 #include "screen.h"
 #include "timeManager.h"
+#include "userBoardDefines.h"
+
 
 ScreenState stateInScreen;
 String blockHeightGlobal;
 PriceData priceGlobal;
 RecommendedFees recommendedFeesGlobal;
-
 ApiClient apiClient("YOUR_API_KEY_HERE");
+Screen screen;
+WiFiManager wifiManager(&screen);
 
 uint8_t globalMinute = 61;
 int globalBatteryLevel = -1;
@@ -23,21 +26,21 @@ unsigned long lastMinuteCheck = 60001;
 
 void setup() {
   M5.begin(true, true, true);
-  initScreen();
+  screen.initScreen();
 
   setCpuNormalClock();
 
   M5.Axp.ScreenBreath(9);
 
-  drawStringPush("BLOCKCLOCK", 10, 10, 2);
+  screen.drawStringPush("BLOCKCLOCK", 10, 10, 2);
 
-  initWiFi();
+  wifiManager.initWiFi();
 
-  drawStringPush("Configuring clock", 10, 70, 1);
+  screen.drawStringPush("Configuring clock", 10, 70, 1);
 
   timeManagerbegin();
 
-  drawStringPush("Getting current block height", 10, 80, 1);
+  screen.drawStringPush("Getting current block height", 10, 80, 1);
 
   firstTimeInit();
   updateScreen();
@@ -116,15 +119,15 @@ void updateScreen() {
 }
 
 void firstTimeInit() {
-  if (isWiFiConnected()) {
+  if (wifiManager.isWiFiConnected()) {
     blockHeightGlobal = apiClient.getBlockHeight();
-    drawBlockHeightScreen(blockHeightGlobal);
+    screen.drawBlockHeightScreen(blockHeightGlobal);
   }
 }
 
 void callBlockHeightScreen() {
   String blockheight;
-  if (isWiFiConnected()) {
+  if (wifiManager.isWiFiConnected()) {
     if (isIntervalElapsed()) {
       blockheight = apiClient.getBlockHeight();
     } else {
@@ -133,7 +136,7 @@ void callBlockHeightScreen() {
     if (blockheight != blockHeightGlobal || stateInScreen != BLOCKHEIGHT) {
       stateInScreen = BLOCKHEIGHT;
       blockHeightGlobal = blockheight;
-      drawBlockHeightScreen(blockHeightGlobal);
+      screen.drawBlockHeightScreen(blockHeightGlobal);
     }
   }
 }
@@ -141,7 +144,7 @@ void callBlockHeightScreen() {
 void callTransactionFeesScreen() {
   RecommendedFees recommendedFees;
 
-  if (isWiFiConnected()) {
+  if (wifiManager.isWiFiConnected()) {
     if (isIntervalElapsed() || recommendedFeesGlobal.high == 0) {
       recommendedFees = apiClient.getRecommendedFees();
     } else {
@@ -151,13 +154,13 @@ void callTransactionFeesScreen() {
         stateInScreen != RECOMMENDED_FEES) {
       stateInScreen = RECOMMENDED_FEES;
       recommendedFeesGlobal = recommendedFees;
-      drawRecommendedFeesScreen(recommendedFees);
+      screen.drawRecommendedFeesScreen(recommendedFees);
     }
   }
 }
 
 void callPriceScreen() {
-  if (isWiFiConnected()) {
+  if (wifiManager.isWiFiConnected()) {
     stateInScreen = PRICE;
 
     PriceData pricePrefs = getBitcoinDataInPrefs(currentCurrencyState);
@@ -190,12 +193,12 @@ void callPriceScreen() {
       saveBitcoinDataInPrefs(priceGlobal);
     }
 
-    drawnPriceScreen(priceGlobal);
+    screen.drawnPriceScreen(priceGlobal);
   }
 }
 
 void callChangeScreen() {
-  if (isWiFiConnected()) {
+  if (wifiManager.isWiFiConnected()) {
     stateInScreen = BTC_CHANGE;
 
     PriceData pricePrefs = getBitcoinDataInPrefs(currentCurrencyState);
@@ -222,8 +225,7 @@ void callChangeScreen() {
       saveBitcoinDataInPrefs(priceGlobal);
     }
 
-    clearScreenExceptBattery();
-    drawnChangeScreen(priceGlobal);
+    screen.drawnChangeScreen(priceGlobal);
   }
 }
 
@@ -260,13 +262,13 @@ void callDateTimeScreen() {
 
   if (stateInScreen == DATEANDTIME) {
     if (currentDateAndTime.minutes != globalMinute) {
-      drawnDateAndTimeScreen(hours, minutes, ddmmyyyy);
+      screen.drawnDateAndTimeScreen(hours, minutes, ddmmyyyy);
       globalMinute = currentDateAndTime.minutes;
     }
 
   } else {
     stateInScreen = DATEANDTIME;
-    drawnDateAndTimeScreen(hours, minutes, ddmmyyyy);
+    screen.drawnDateAndTimeScreen(hours, minutes, ddmmyyyy);
     globalMinute = currentDateAndTime.minutes;
   }
 }
@@ -274,9 +276,9 @@ void callDateTimeScreen() {
 void callWiFiDataScreen(bool forceRender) {
   if (stateInScreen != WIFIDATA || forceRender == true) {
     stateInScreen = WIFIDATA;
-    WiFiData wifiData = getWiFiData();
+    WiFiData wifiData = wifiManager.getWiFiData();
 
-    drawnWiFiDataScreen(wifiData);
+    screen.drawnWiFiDataScreen(wifiData);
   }
 }
 
@@ -319,12 +321,12 @@ void callPrintbattery() {
   int batteryLevel = getBatteryLevel();
   if (globalBatteryLevel == -1) {
     globalBatteryLevel = batteryLevel;
-    clearBatteryScreen();
-    printBattery(batteryLevel);
+    screen.clearBatteryScreen();
+    screen.printBattery(batteryLevel);
   }
   if (batteryLevel < globalBatteryLevel) {
     globalBatteryLevel = batteryLevel;
-    clearBatteryScreen();
-    printBattery(batteryLevel);
+    screen.clearBatteryScreen();
+    screen.printBattery(batteryLevel);
   }
 }

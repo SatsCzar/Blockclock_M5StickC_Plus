@@ -9,8 +9,24 @@ This is a versatile Bitcoin blockclock for the M5StickC Plus (ESP32) that connec
 1. Download the latest version of Arduino IDE
 2. Follow this [tutorial](https://docs.m5stack.com/en/quick_start/m5stickc_plus/arduino) to install the required libraries, which include M5StickC Plus, ArduinoJson, and [ESP32-Bitcoin-BlockClock-Library](https://github.com/SatsCzar/ESP32-Bitcoin-BlockClock-Library)
 3. Clone the repository and open the blockclock.ino file with the Arduino IDE
-4. Select the COM port corresponding to your M5Stick and the model
-5. Upload the code
+4. Make sure to edit the `userBoardDefines.h` file in the ESP32-Bitcoin-BlockClock-Library to define your device type. For example:
+```
+#define GENERIC_ESP32 1
+/* #define M5STACK 1 */
+#ifdef GENERIC_ESP32
+#define BUTTON1PIN 35
+#define BUTTON2PIN 0
+#endif
+```
+5. Select the COM port corresponding to your M5Stick and the model
+6. Compile and upload the code using these commands:
+```
+# Command to compile
+arduino-cli compile --fqbn m5stack:esp32:m5stick-c-plus:PartitionScheme=default,CPUFreq=240,UploadSpeed=1500000,DebugLevel=none,EraseFlash=none --build-path build --port COM5 blockclock/blockclock.ino
+
+# Command to upload
+arduino-cli upload --fqbn m5stack:esp32:m5stick-c-plus:PartitionScheme=default,CPUFreq=240,UploadSpeed=1500000,DebugLevel=none,EraseFlash=none --programmer esptool --input-dir build --port COM5
+```
 
 ## Screens
 
@@ -34,6 +50,8 @@ This is a versatile Bitcoin blockclock for the M5StickC Plus (ESP32) that connec
 
 ## Connecting to Wi-Fi
 
-The code uses smartconfig from ESP32 to connect to Wi-Fi, so you need the app [ESP-TOUCH](https://www.espressif.com/en/products/software/esp-touch/resources), which can be found on the EspressIF website.
+The code uses smartconfig from ESP32 to connect to Wi-Fi, so you need the app [ESP-TOUCH](https://www.espressif.com/en/products/software
+
+/esp-touch/resources), which can be found on the EspressIF website.
 
 ![SmartConfig](https://www.espressif.com/sites/default/files/faq/screen_shot_2016-04-27_at_1.30.27_pm_0.png)
